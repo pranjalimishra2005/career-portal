@@ -12,8 +12,22 @@ from app.db.retriever import query_profile
 @pytest.fixture
 def sample_profile_data():
     profile_path = Path("data/profile/profile.json")
-    with open(profile_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    if profile_path.exists():
+        with open(profile_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {
+        "full_name": "Alex Mercer",
+        "email": "alex.mercer@example.com",
+        "phone": "+1 555-0199",
+        "location": "San Francisco, CA",
+        "summary": "Senior Backend Engineer with 5+ years of experience in Python, FastAPI, and distributed systems.",
+        "education": [],
+        "experience": [],
+        "projects": [],
+        "skills": [
+            {"category": "Technical", "skills": ["Python", "FastAPI", "Redis"]}
+        ]
+    }
 
 
 @pytest.fixture

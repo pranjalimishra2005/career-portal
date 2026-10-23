@@ -33,6 +33,7 @@ import {
 
 import {
   fetchProfile,
+  clearProfile,
   fetchJobs,
   uploadResumeFile,
   searchGreenhouse,
@@ -131,17 +132,59 @@ export default function App() {
   async function loadData() {
     try {
       setLoading(true);
-      const [pData, jData] = await Promise.all([fetchProfile(), fetchJobs()]);
+      const [pData, jData] = await Promise.all([
+        fetchProfile().catch(() => null),
+        fetchJobs().catch(() => [])
+      ]);
       setProfile(pData);
       if (pData?.screening) {
         setScreeningVault(pData.screening);
       }
-      setJobs(jData);
-      if (jData.length > 0 && !studioJobId) {
+      setJobs(jData || []);
+      if (jData && jData.length > 0 && !studioJobId) {
         setStudioJobId(jData[0].id);
       }
     } catch (err) {
       showToast('error', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetProfile() {
+    if (!window.confirm("Are you sure you want to start afresh? This will clear your uploaded resume, indexed facts, and tracked jobs so a new user can start from scratch.")) {
+      return;
+    }
+    try {
+      setLoading(true);
+      await clearProfile();
+      setProfile(null);
+      setJobs([]);
+      setSelectedCompany(null);
+      setReviewData(null);
+      setApplyingJobId(null);
+      setAnalysisJob(null);
+      setStudioJobId(null);
+      setBoardInput('');
+      setFilter('all');
+      setScreeningVault({
+        authorized_to_work: true,
+        requires_sponsorship: false,
+        notice_period_days: 0,
+        willing_to_relocate: true,
+        preferred_work_type: 'Remote',
+        primary_country: 'United States',
+        veteran_status: 'No',
+        disability_status: 'No',
+        gender: '',
+        race_ethnicity: '',
+        pronouns: '',
+        expected_salary: 'Negotiable',
+        custom_qa: []
+      });
+      showToast('success', 'Reset complete! You can now start afresh and upload a new resume.');
+    } catch (err) {
+      showToast('error', `Failed to reset: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -497,9 +540,22 @@ export default function App() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-semibold text-slate-900 text-sm tracking-tight">CareerPortal</h1>
-                {profile && (
-                  <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                    {profile.full_name}
+                {profile ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                      {profile.full_name}
+                    </span>
+                    <button
+                      onClick={handleResetProfile}
+                      title="Clear session and start afresh"
+                      className="px-2 py-0.5 rounded text-[10px] font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition active:scale-95"
+                    >
+                      Start Afresh
+                    </button>
+                  </div>
+                ) : (
+                  <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    No Resume Uploaded
                   </span>
                 )}
                 <span className="hidden sm:inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 uppercase tracking-wide">
@@ -713,7 +769,7 @@ export default function App() {
                 </div>
               </div>
 
-              {profile && (
+              {profile ? (
                 <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-xs flex flex-col justify-between border-t-2 border-t-indigo-600">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -756,6 +812,23 @@ export default function App() {
                       {screeningVault.authorized_to_work ? 'Authorized' : 'Requires Auth'}
                     </span>
                   </div>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-xs flex flex-col items-center justify-center text-center border-t-2 border-t-indigo-600">
+                  <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center mb-3">
+                    <UploadCloud className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-900">Upload Your Resume</h3>
+                  <p className="text-xs text-slate-500 mt-1.5 max-w-xs">
+                    Upload your resume to automatically extract your skills, index your experience in vector search, and score jobs.
+                  </p>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingResume}
+                    className="mt-4 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs shadow-indigo-100 transition active:scale-95 disabled:opacity-50"
+                  >
+                    {uploadingResume ? 'Processing...' : 'Upload Resume (.pdf, .docx)'}
+                  </button>
                 </div>
               )}
             </div>
@@ -1213,6 +1286,16 @@ export default function App() {
                 )}
               </div>
             )}
+
+            {!currentStudioJob && (
+              <div className="bg-white border border-dashed border-slate-200 rounded-xl p-12 text-center space-y-3">
+                <FileText className="w-8 h-8 text-slate-400 mx-auto" />
+                <h4 className="text-sm font-semibold text-slate-900">No Job Selected</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Upload your resume and search or add jobs to generate and preview tailored resumes and cover letters in real time.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -1362,35 +1445,62 @@ export default function App() {
         )}
 
         {/* VIEW 5: PROFILE & WORK AUTH VAULT */}
-        {navView === 'profile' && profile && (
+        {navView === 'profile' && (
           <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs border-t-4 border-t-indigo-600">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-indigo-200">
-                    {profile.full_name?.charAt(0)}
+            {profile ? (
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs border-t-4 border-t-indigo-600">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-indigo-200">
+                      {profile.full_name?.charAt(0)}
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-slate-900">{profile.full_name}</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {profile.email} • {profile.phone} • {profile.location}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-slate-900">{profile.full_name}</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {profile.email} • {profile.phone} • {profile.location}
-                    </p>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingResume}
+                      className="px-3.5 py-2 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs transition flex items-center gap-2 active:scale-95"
+                    >
+                      <UploadCloud className="w-4 h-4 text-slate-600" /> Replace Resume
+                    </button>
+                    <button
+                      onClick={handleResetProfile}
+                      className="px-3.5 py-2 rounded-lg text-xs font-medium bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 shadow-xs transition flex items-center gap-1.5 active:scale-95"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-600" /> Start Afresh
+                    </button>
                   </div>
                 </div>
 
+                <p className="text-xs text-slate-700 mt-4 leading-relaxed border-t border-slate-100 pt-3">
+                  {profile.summary}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-xl p-8 text-center max-w-xl mx-auto shadow-xs border-t-4 border-t-indigo-600">
+                <div className="w-14 h-14 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                  <UploadCloud className="w-7 h-7" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">No Candidate Resume Loaded</h3>
+                <p className="text-xs text-slate-500 mt-1.5 max-w-sm mx-auto">
+                  Upload your resume in PDF or DOCX format to parse your contact info, technical skills, projects, and education.
+                </p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingResume}
-                  className="px-4 py-2 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs transition flex items-center gap-2 active:scale-95"
+                  className="mt-5 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition active:scale-95 disabled:opacity-50"
                 >
-                  <UploadCloud className="w-4 h-4 text-slate-600" /> Replace Resume File
+                  {uploadingResume ? 'Processing...' : 'Upload Resume (.pdf, .docx)'}
                 </button>
               </div>
-
-              <p className="text-xs text-slate-700 mt-4 leading-relaxed border-t border-slate-100 pt-3">
-                {profile.summary}
-              </p>
-            </div>
+            )}
 
             {/* SCREENING & WORK AUTHORIZATION */}
             <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-6 shadow-xs">
@@ -1617,46 +1727,49 @@ export default function App() {
               </div>
             </div>
 
-            {/* Technical Projects */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-xs">
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                <Code2 className="w-4 h-4 text-indigo-600" /> Highlighted Projects
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {profile.projects?.map((proj) => (
-                  <div key={proj.title} className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-2 hover:border-indigo-200 hover:shadow-xs transition">
-                    <h4 className="text-sm font-semibold text-slate-900">{proj.title}</h4>
-                    <p className="text-xs text-slate-600 leading-relaxed">{proj.description}</p>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {proj.technologies?.map((t) => (
-                        <span key={t} className="px-2 py-0.5 rounded text-[11px] bg-indigo-50/70 border border-indigo-200/70 text-indigo-700 font-medium">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
+            {/* Technical Projects & Education */}
+            {profile && (
+              <>
+                <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-xs">
+                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                    <Code2 className="w-4 h-4 text-indigo-600" /> Highlighted Projects
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {profile.projects?.map((proj) => (
+                      <div key={proj.title} className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/80 space-y-2 hover:border-indigo-200 hover:shadow-xs transition">
+                        <h4 className="text-sm font-semibold text-slate-900">{proj.title}</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed">{proj.description}</p>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {proj.technologies?.map((t) => (
+                            <span key={t} className="px-2 py-0.5 rounded text-[11px] bg-indigo-50/70 border border-indigo-200/70 text-indigo-700 font-medium">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Education */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-xs">
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-slate-600" /> Education
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {profile.education?.map((edu, i) => (
-                  <div key={i} className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-1">
-                    <span className="text-[11px] text-slate-500 font-medium">
-                      {edu.start_year || '2024'} - {edu.end_year || '2027'}
-                    </span>
-                    <h4 className="text-xs font-semibold text-slate-900">{edu.institution}</h4>
-                    <p className="text-xs text-slate-600">{edu.degree} in {edu.field_of_study}</p>
-                    {edu.gpa && <p className="text-xs text-emerald-700 font-medium">GPA: {edu.gpa}</p>}
+                <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-xs">
+                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-slate-600" /> Education
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {profile.education?.map((edu, i) => (
+                      <div key={i} className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-1">
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {edu.start_year || '2024'} - {edu.end_year || '2027'}
+                        </span>
+                        <h4 className="text-xs font-semibold text-slate-900">{edu.institution}</h4>
+                        <p className="text-xs text-slate-600">{edu.degree} in {edu.field_of_study}</p>
+                        {edu.gpa && <p className="text-xs text-emerald-700 font-medium">GPA: {edu.gpa}</p>}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </main>

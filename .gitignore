@@ -17,6 +17,9 @@ data/chromadb/
 data/exports/
 data/*.db
 data/*.sqlite3
+data/profile/*.json
+data/profile/
+!data/profile/.gitkeep
 
 # Node / React Frontend
 frontend/node_modules/

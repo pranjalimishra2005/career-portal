@@ -5,7 +5,7 @@ import pytest
 
 from app.core.config import settings, BASE_DIR
 from app.db.sqlite_client import init_db
-from app.db.profile_schema import UserProfile
+from app.db.profile_schema import UserProfile, SkillCategory
 from app.db.chunker import chunk_profile
 import app.db.vector_store as vs
 
@@ -33,10 +33,30 @@ def isolate_test_environment(tmp_path_factory):
     orig_chroma = settings.CHROMA_PERSIST_DIR
     orig_profile = settings.PROFILE_DATA_DIR
 
-    # 3. If a production profile exists, copy to sandbox
+    # 3. If a production profile exists, copy to sandbox; otherwise synthesize mock test profile
     prod_profile_file = orig_profile / "profile.json"
     if prod_profile_file.exists():
         shutil.copy(prod_profile_file, test_profile_dir / "profile.json")
+    else:
+        mock_test_profile = UserProfile(
+            full_name="Alex Morgan",
+            email="alex.morgan@example.com",
+            phone="+1 555-019-2834",
+            location="San Francisco, CA",
+            linkedin_url="https://linkedin.com/in/alexmorgan-dev",
+            github_url="https://github.com/alexmorgan-dev",
+            portfolio_url="https://alexmorgan.dev",
+            summary="Experienced Full-Stack Software Engineer with expertise in Python, React, and distributed systems.",
+            education=[],
+            experience=[],
+            projects=[],
+            skills=[
+                SkillCategory(category="Languages", skills=["Python", "JavaScript"]),
+                SkillCategory(category="Frameworks", skills=["FastAPI", "React"])
+            ]
+        )
+        with open(test_profile_dir / "profile.json", "w", encoding="utf-8") as f:
+            f.write(mock_test_profile.model_dump_json(indent=2))
 
     # 4. Redirect settings to the temporary sandbox
     settings.SQLITE_DB_PATH = test_db

@@ -8,7 +8,16 @@ export async function fetchHealth() {
 
 export async function fetchProfile() {
   const res = await fetch(`${API_BASE}/api/profile`);
-  if (!res.ok) throw new Error('Failed to load profile');
+  if (!res.ok) {
+    if (res.status === 404) return null;
+    throw new Error('Failed to load profile');
+  }
+  return res.json();
+}
+
+export async function clearProfile() {
+  const res = await fetch(`${API_BASE}/api/profile`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to reset profile');
   return res.json();
 }
 
@@ -115,7 +124,10 @@ export async function decideApplication(threadId, approve, feedback = '') {
 
 export async function fetchScreeningPreferences() {
   const res = await fetch(`${API_BASE}/api/profile/screening`);
-  if (!res.ok) throw new Error('Failed to load screening preferences');
+  if (!res.ok) {
+    if (res.status === 404) return null;
+    throw new Error('Failed to load screening preferences');
+  }
   return res.json();
 }
 

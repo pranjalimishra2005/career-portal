@@ -28,7 +28,7 @@ from app.db.sqlite_client import (
     list_jobs
 )
 from app.db.chunker import chunk_profile
-from app.db.vector_store import index_profile_chunks
+from app.db.vector_store import index_profile_chunks, clear_profile_collection
 from app.llm.factory import get_llm_provider
 from app.tools.job_fetcher import (
     fetch_greenhouse_jobs,
@@ -202,27 +202,82 @@ async def generate_pdfs_for_job(job_id: str):
 
 
 @app.get("/api/profile")
-def get_profile() -> Dict[str, Any]:
-    """Returns candidate ground-truth profile from data/profile/profile.json."""
+def get_profile() -> Optional[Dict[str, Any]]:
+    """Returns candidate ground-truth profile from data/profile/profile.json or None if empty."""
     profile_path = BASE_DIR / "data" / "profile" / "profile.json"
     if not profile_path.exists():
-        raise HTTPException(status_code=404, detail="Candidate profile not found.")
-    with open(profile_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    profile = UserProfile(**data)
-    return profile.model_dump()
+        return None
+    try:
+        with open(profile_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not data or not data.get("full_name"):
+            return None
+        profile = UserProfile(**data)
+        return profile.model_dump()
+    except Exception:
+        return None
+
+
+@app.delete("/api/profile")
+async def delete_profile():
+    """
+    Deletes the current candidate profile, clears vector store facts,
+    purges all jobs and generated export documents so the platform starts completely fresh.
+    """
+    profile_path = BASE_DIR / "data" / "profile" / "profile.json"
+    if profile_path.exists():
+        try:
+            profile_path.unlink()
+        except Exception:
+            pass
+
+    # Clear ChromaDB vector facts
+    try:
+        clear_profile_collection()
+    except Exception:
+        pass
+
+    # Clear all jobs in SQLite
+    with get_db_connection() as conn:
+        conn.execute("DELETE FROM jobs")
+        conn.commit()
+
+    # Clean exports
+    if EXPORTS_DIR.exists():
+        for item in EXPORTS_DIR.glob("*"):
+            if item.is_file():
+                try:
+                    item.unlink()
+                except Exception:
+                    pass
+
+    # Close active browsers
+    for jid, bm in list(ACTIVE_BROWSERS.items()):
+        try:
+            await bm.close()
+        except Exception:
+            pass
+    ACTIVE_BROWSERS.clear()
+
+    return {
+        "status": "success",
+        "message": "Candidate profile and session data completely reset. You can start afresh with a new resume."
+    }
 
 
 @app.get("/api/profile/screening")
 def get_screening_preferences() -> Dict[str, Any]:
-    """Returns candidate screening vault preferences."""
+    """Returns candidate screening vault preferences, or defaults if not configured yet."""
     profile_path = BASE_DIR / "data" / "profile" / "profile.json"
-    if not profile_path.exists():
-        raise HTTPException(status_code=404, detail="Candidate profile not found.")
-    with open(profile_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    profile = UserProfile(**data)
-    return profile.screening.model_dump()
+    if profile_path.exists():
+        try:
+            with open(profile_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            profile = UserProfile(**data)
+            return profile.screening.model_dump()
+        except Exception:
+            pass
+    return ScreeningPreferences().model_dump()
 
 
 @app.post("/api/profile/screening")
@@ -233,19 +288,44 @@ async def update_screening_preferences(payload: ScreeningPreferences):
     """
     profile_path = BASE_DIR / "data" / "profile" / "profile.json"
     if not profile_path.exists():
-        raise HTTPException(status_code=404, detail="Candidate profile not found.")
-    with open(profile_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+        profile = UserProfile(
+            full_name="Candidate",
+            email="candidate@example.com",
+            phone="",
+            location="",
+            summary="",
+            education=[],
+            experience=[],
+            projects=[],
+            skills=[]
+        )
+    else:
+        try:
+            with open(profile_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            profile = UserProfile(**data)
+        except Exception:
+            profile = UserProfile(
+                full_name="Candidate",
+                email="candidate@example.com",
+                phone="",
+                location="",
+                summary="",
+                education=[],
+                experience=[],
+                projects=[],
+                skills=[]
+            )
 
-    profile = UserProfile(**data)
     profile.screening = payload
-
+    profile_path.parent.mkdir(parents=True, exist_ok=True)
     with open(profile_path, "w", encoding="utf-8") as f:
         f.write(profile.model_dump_json(indent=2))
 
-    # Re-index chunks in ChromaDB
-    chunks = chunk_profile(profile)
-    index_profile_chunks(chunks)
+    # Re-index chunks in ChromaDB if profile has meaningful facts
+    if profile.full_name and profile.full_name != "Candidate":
+        chunks = chunk_profile(profile)
+        index_profile_chunks(chunks)
 
     return {
         "status": "success",
@@ -532,6 +612,14 @@ async def rank_all_jobs():
     Stage 1: Dense embedding ranker (BGE-Small)
     Stage 2: LLM reranker with explanation
     """
+    profile_path = BASE_DIR / "data" / "profile" / "profile.json"
+    if not profile_path.exists():
+        return {
+            "status": "warning",
+            "message": "Please upload your resume first so jobs can be scored against your profile.",
+            "ranked_jobs": []
+        }
+
     jobs = list_jobs()
     valid_jobs = [j for j in jobs if is_real_job(j)]
 
@@ -566,6 +654,10 @@ async def start_application(payload: StartApplicationRequest):
     Executes: Match -> Tailor -> Fact Audit -> Multi-ATS Form Fill.
     AUTOMATICALLY PAUSES at review checkpoint and returns state for approval.
     """
+    profile_path = BASE_DIR / "data" / "profile" / "profile.json"
+    if not profile_path.exists():
+        raise HTTPException(status_code=400, detail="Please upload your resume before starting an application.")
+
     job = get_job_by_id(payload.job_id)
     if not job or not is_real_job(job):
         raise HTTPException(status_code=404, detail=f"Job {payload.job_id} not found.")

@@ -2,7 +2,7 @@ import json
 import pytest
 from pathlib import Path
 
-from app.db.profile_schema import UserProfile
+from app.db.profile_schema import UserProfile, SkillCategory
 from app.tools.browser_manager import BrowserManager, LOCAL_TEST_FORM_URL
 from app.tools.field_detector import detect_form_fields
 from app.agents.form_fill.form_filler import autofill_application_form, SCREENSHOT_PATH
@@ -10,8 +10,23 @@ from app.agents.form_fill.form_filler import autofill_application_form, SCREENSH
 
 @pytest.fixture
 def test_profile():
-    with open("data/profile/profile.json", "r", encoding="utf-8") as f:
-        return UserProfile(**json.load(f))
+    profile_path = Path("data/profile/profile.json")
+    if profile_path.exists():
+        with open(profile_path, "r", encoding="utf-8") as f:
+            return UserProfile(**json.load(f))
+    return UserProfile(
+        full_name="Alex Morgan",
+        email="alex.morgan@example.com",
+        phone="+1 555-019-2834",
+        location="San Francisco, CA",
+        summary="Experienced Software Engineer with expertise in Python, FastAPI, and React.",
+        education=[],
+        experience=[],
+        projects=[],
+        skills=[
+            SkillCategory(category="Technical", skills=["Python", "FastAPI", "React"])
+        ]
+    )
 
 
 @pytest.mark.asyncio
