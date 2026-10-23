@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
 
     # LLM Settings
-    DEFAULT_LLM_PROVIDER: Literal["gemini", "groq", "ollama"] = "gemini"
+    DEFAULT_LLM_PROVIDER: Literal["gemini", "groq", "ollama"] = "groq"
     GEMINI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
     OLLAMA_BASE_URL: str = "http://localhost:11434"
