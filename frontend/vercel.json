@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://career-portal-api-1fsl.onrender.com/api/:path*"
+    },
+    {
+      "source": "/exports/:path*",
+      "destination": "https://career-portal-api-1fsl.onrender.com/exports/:path*"
+    },
+    {
+      "source": "/test-form",
+      "destination": "https://career-portal-api-1fsl.onrender.com/test-form"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }

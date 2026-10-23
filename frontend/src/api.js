@@ -1,4 +1,7 @@
-export const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+export const API_BASE = (
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? '' : 'https://career-portal-api-1fsl.onrender.com')
+).replace(/\/$/, '');
 
 export async function fetchHealth() {
   const res = await fetch(`${API_BASE}/api/health`);
