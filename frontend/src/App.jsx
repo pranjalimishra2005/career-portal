@@ -44,7 +44,8 @@ import {
   decideApplication,
   addManualJob,
   updateJobStatus,
-  updateScreeningPreferences
+  updateScreeningPreferences,
+  API_BASE
 } from './api';
 
 // Filter out any mock/sample test jobs
@@ -357,7 +358,7 @@ export default function App() {
     try {
       setOpeningBrowser(true);
       showToast('info', 'Opening Chromium browser window...');
-      const res = await fetch('/api/applications/open-browser', {
+      const res = await fetch(`${API_BASE}/api/applications/open-browser`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_id: jobId })
@@ -1084,7 +1085,7 @@ export default function App() {
                     {studioTab === 'resume' ? (
                       <>
                         <a
-                          href={`/exports/${currentStudioJob.id}_resume.pdf`}
+                          href={`${API_BASE}/exports/${currentStudioJob.id}_resume.pdf`}
                           download={`${profile?.full_name ? profile.full_name.replace(/\s+/g, '_') : 'Tailored'}_Resume.pdf`}
                           className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-xs shadow-indigo-200 flex items-center gap-1.5 transition active:scale-95"
                         >
@@ -1092,7 +1093,7 @@ export default function App() {
                           Download PDF
                         </a>
                         <a
-                          href={`/exports/${currentStudioJob.id}_resume.docx`}
+                          href={`${API_BASE}/exports/${currentStudioJob.id}_resume.docx`}
                           download
                           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs flex items-center gap-1.5 transition"
                         >
@@ -1103,7 +1104,7 @@ export default function App() {
                     ) : (
                       <>
                         <a
-                          href={`/exports/${currentStudioJob.id}_cover_letter.pdf`}
+                          href={`${API_BASE}/exports/${currentStudioJob.id}_cover_letter.pdf`}
                           download={`${profile?.full_name ? profile.full_name.replace(/\s+/g, '_') : 'Tailored'}_Cover_Letter.pdf`}
                           className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-xs shadow-indigo-200 flex items-center gap-1.5 transition active:scale-95"
                         >
@@ -1111,7 +1112,7 @@ export default function App() {
                           Download PDF
                         </a>
                         <a
-                          href={`/exports/${currentStudioJob.id}_cover_letter.docx`}
+                          href={`${API_BASE}/exports/${currentStudioJob.id}_cover_letter.docx`}
                           download
                           className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs flex items-center gap-1.5 transition"
                         >
@@ -1909,7 +1910,7 @@ export default function App() {
                   {reviewData.screenshot_url ? (
                     <div className="rounded-xl overflow-hidden border border-slate-200 bg-white shadow-xs flex flex-col items-center">
                       <img
-                        src={`${reviewData.screenshot_url}?t=${Date.now()}`}
+                        src={reviewData.screenshot_url?.startsWith('http') ? reviewData.screenshot_url : `${API_BASE}${reviewData.screenshot_url}?t=${Date.now()}`}
                         alt="Application Form Preview"
                         className="w-full max-h-[480px] object-top object-contain mx-auto"
                         onError={(e) => {
@@ -1948,14 +1949,14 @@ export default function App() {
                     <span className="font-semibold text-slate-900">Tailored Cover Letter</span>
                     <div className="flex items-center gap-2">
                       <a
-                        href={`/exports/${reviewData.job?.id}_cover_letter.pdf`}
+                        href={`${API_BASE}/exports/${reviewData.job?.id}_cover_letter.pdf`}
                         download
                         className="px-2.5 py-1 rounded text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white flex items-center gap-1 shadow-xs shadow-indigo-200 transition active:scale-95"
                       >
                         <Download className="w-3 h-3 text-white" /> Download PDF
                       </a>
                       <a
-                        href={`/exports/${reviewData.job?.id}_cover_letter.docx`}
+                        href={`${API_BASE}/exports/${reviewData.job?.id}_cover_letter.docx`}
                         download
                         className="px-2.5 py-1 rounded text-xs font-medium bg-white text-slate-700 border border-slate-200 flex items-center gap-1 shadow-xs hover:bg-slate-50 transition"
                       >
@@ -1981,14 +1982,14 @@ export default function App() {
                     <span className="font-semibold text-slate-900">Tailored Resume</span>
                     <div className="flex items-center gap-2">
                       <a
-                        href={`/exports/${reviewData.job?.id}_resume.pdf`}
+                        href={`${API_BASE}/exports/${reviewData.job?.id}_resume.pdf`}
                         download
                         className="px-2.5 py-1 rounded text-xs font-medium bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white flex items-center gap-1 shadow-xs shadow-indigo-200 transition active:scale-95"
                       >
                         <Download className="w-3 h-3 text-white" /> Download PDF
                       </a>
                       <a
-                        href={`/exports/${reviewData.job?.id}_resume.docx`}
+                        href={`${API_BASE}/exports/${reviewData.job?.id}_resume.docx`}
                         download
                         className="px-2.5 py-1 rounded text-xs font-medium bg-white text-slate-700 border border-slate-200 flex items-center gap-1 shadow-xs hover:bg-slate-50 transition"
                       >

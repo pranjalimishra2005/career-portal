@@ -655,3 +655,10 @@ async def open_live_browser(payload: OpenBrowserRequest):
         "message": "Live Chromium window opened visibly on your desktop.",
         "url": target_url
     }
+
+
+# Serve built frontend single-page application if dist exists
+FRONTEND_DIST = BASE_DIR / "frontend" / "dist"
+if FRONTEND_DIST.exists():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")
+
