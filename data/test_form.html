@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nexus Systems - Junior Backend Developer Application</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; padding: 40px; color: #1e293b; }
+        .container { max-width: 650px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin: 0 auto; }
+        h1 { font-size: 24px; margin-bottom: 8px; color: #0f172a; }
+        p.subtitle { color: #64748b; margin-bottom: 24px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+            width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; ring: 2px solid #93c5fd; }
+        .btn-submit { background: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .btn-submit:hover { background: #1d4ed8; }
+        #status-message { margin-top: 15px; font-weight: bold; color: #16a34a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Nexus Systems</h1>
+        <p class="subtitle">Application for: Junior Python Backend Developer</p>
+        <form id="application-form" onsubmit="event.preventDefault(); document.getElementById('status-message').innerText = 'Application Submitted Successfully!';">
+            <div class="form-group">
+                <label for="first_name">First Name *</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name *</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+            <div class="form-group">
+                <label for="resume">Resume / CV (.docx, .pdf) *</label>
+                <input type="file" id="resume" name="resume" accept=".docx,.pdf" required>
+            </div>
+            <div class="form-group">
+                <label for="work_auth">Are you legally authorized to work in the United States? *</label>
+                <select id="work_auth" name="work_auth" required>
+                    <option value="">Select an option</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="linkedin_profile">LinkedIn Profile URL</label>
+                <input type="text" id="linkedin_profile" name="linkedin_profile">
+            </div>
+            <div class="form-group">
+                <label for="github_profile">GitHub Profile URL</label>
+                <input type="text" id="github_profile" name="github_profile">
+            </div>
+            <div class="form-group">
+                <label for="experience_summary">Describe your experience with async Python microservices *</label>
+                <textarea id="experience_summary" name="experience_summary" rows="4" required></textarea>
+            </div>
+            <button type="submit" id="submit-btn" class="btn-submit">Submit Application</button>
+            <div id="status-message"></div>
+        </form>
+    </div>
+</body>
+</html>

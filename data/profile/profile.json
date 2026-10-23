@@ -1,0 +1,155 @@
+{
+  "full_name": "Pranjali Mishra",
+  "email": "pranjalimishra2602@gmail.com",
+  "phone": "+91 7389828044",
+  "location": "Indore, India",
+  "linkedin_url": null,
+  "github_url": null,
+  "portfolio_url": null,
+  "summary": "Final-year B.Tech student in Information Technology at SGSITS, Indore, with a strong foundation in Machine Learning, Data Science, and Full-Stack Development. Experienced in building end-to-end ML pipelines, deploying interactive web applications, and designing microservices architectures. Skilled in Python, Scikit-learn, FastAPI, and Next.js, with a focus on model explainability and algorithmic optimization.",
+  "education": [
+    {
+      "institution": "Shri G. S. Institute of Technology & Science, Indore",
+      "degree": "B.Tech",
+      "field_of_study": "Information Technology",
+      "start_year": 2023,
+      "end_year": 2027,
+      "gpa": "8.10 / 10"
+    },
+    {
+      "institution": "Noble Children Academy",
+      "degree": "12th",
+      "field_of_study": "Science",
+      "start_year": 2021,
+      "end_year": 2023,
+      "gpa": "83.40%"
+    },
+    {
+      "institution": "Little World School",
+      "degree": "10th",
+      "field_of_study": "Science",
+      "start_year": 2019,
+      "end_year": 2021,
+      "gpa": "90.8%"
+    }
+  ],
+  "experience": [],
+  "projects": [
+    {
+      "title": "Life Expectancy Prediction",
+      "description": "Built an end-to-end ML pipeline to predict life expectancy from WHO socio-economic and health indicators. Benchmarked 7 regression models and deployed the best-performing model as an interactive Gradio web app with SHAP-based explainability.",
+      "technologies": [
+        "Python",
+        "Scikit-learn",
+        "XGBoost",
+        "LightGBM",
+        "SHAP",
+        "Gradio",
+        "Pandas"
+      ],
+      "repo_url": null,
+      "live_url": null,
+      "highlights": [
+        "Benchmarked 7 regression models (Linear, Ridge, Decision Tree, Random Forest, Gradient Boosting, XGBoost, LightGBM) under identical preprocessing and evaluation metrics.",
+        "Identified Random Forest as the best-performing model for life expectancy prediction.",
+        "Implemented SHAP for global feature importance and local prediction explanations.",
+        "Deployed the model as an interactive Gradio web app for real-time inference."
+      ]
+    },
+    {
+      "title": "FoodBridge AI",
+      "description": "Developed a microservices platform connecting food donors with local NGOs, utilizing machine learning for predictive freshness and algorithmic NGO matching.",
+      "technologies": [
+        "FastAPI",
+        "Next.js",
+        "PostgreSQL",
+        "SQLAlchemy",
+        "Scikit-learn",
+        "Python"
+      ],
+      "repo_url": null,
+      "live_url": null,
+      "highlights": [
+        "Engineered a RandomForest model to predict food freshness and spoilage timelines, tuned with GridSearchCV and 5-fold cross-validation.",
+        "Developed a custom recommendation engine using Cosine Similarity for food type matching and the Haversine formula for geographic prioritization.",
+        "Designed a clean Service-Repository backend in FastAPI with a strict 4-stage state machine to track physical food pickups."
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "category": "Programming Languages",
+      "skills": [
+        "Python",
+        "C",
+        "C++"
+      ]
+    },
+    {
+      "category": "Web Technologies",
+      "skills": [
+        "HTML5",
+        "CSS3",
+        "FastAPI",
+        "Next.js",
+        "SQL"
+      ]
+    },
+    {
+      "category": "Machine Learning & Data Science",
+      "skills": [
+        "Scikit-learn",
+        "XGBoost",
+        "LightGBM",
+        "SHAP",
+        "NumPy",
+        "Pandas",
+        "Matplotlib"
+      ]
+    },
+    {
+      "category": "Tools & Platforms",
+      "skills": [
+        "Git",
+        "GitHub",
+        "Jupyter Notebook",
+        "Google Colab",
+        "VS Code",
+        "Gradio"
+      ]
+    },
+    {
+      "category": "Operating Systems",
+      "skills": [
+        "Windows",
+        "Linux"
+      ]
+    }
+  ],
+  "screening": {
+    "authorized_to_work": true,
+    "requires_sponsorship": false,
+    "notice_period": "Immediate",
+    "willing_to_relocate": true,
+    "work_location_preference": "Flexible",
+    "pronouns": "She/Her",
+    "expected_salary": "Negotiable",
+    "custom_qa": []
+  },
+  "faqs": [
+    {
+      "question": "Are you legally authorized to work in the target country?",
+      "answer": "Yes, I am legally authorized to work in India.",
+      "tags": [
+        "work_auth"
+      ]
+    },
+    {
+      "question": "Are you open to relocating for this role?",
+      "answer": "Yes, I am open to relocating.",
+      "tags": [
+        "relocation"
+      ]
+    }
+  ]
+}
