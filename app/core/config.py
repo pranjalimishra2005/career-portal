@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     CHROMA_PERSIST_DIR: Path = Field(default=BASE_DIR / "data" / "chromadb")
     PROFILE_DATA_DIR: Path = Field(default=BASE_DIR / "data" / "profile")
 
-    # Embeddings
-    EMBEDDING_MODEL_NAME: str = "BAAI/bge-small-en-v1.5"
+    # Embeddings (lightweight default)
+    EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
 
     # LLM Settings
     DEFAULT_LLM_PROVIDER: Literal["gemini", "groq", "ollama"] = "gemini"

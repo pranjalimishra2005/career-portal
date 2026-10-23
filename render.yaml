@@ -7,6 +7,14 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.5
+      - key: MALLOC_ARENA_MAX
+        value: "2"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: TOKENIZERS_PARALLELISM
+        value: "false"
+      - key: OMP_NUM_THREADS
+        value: "1"
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY

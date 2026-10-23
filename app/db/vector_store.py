@@ -17,20 +17,22 @@ _profile_collection = None
 
 def get_embedding_function():
     """
-    Returns the SentenceTransformer embedding function running locally.
-    Configures single-threaded execution to prevent Windows OpenMP deadlocks.
+    Returns a lightweight ONNX-powered embedding function (< 40MB RAM).
+    Prevents PyTorch/CUDA memory exhaustion on memory-constrained servers (e.g. Render 512MB limit).
     """
     global _embedding_function
     if _embedding_function is None:
         try:
-            import torch
-            torch.set_num_threads(1)
-        except ImportError:
-            pass
-
-        _embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=settings.EMBEDDING_MODEL_NAME
-        )
+            _embedding_function = embedding_functions.DefaultEmbeddingFunction()
+        except Exception:
+            try:
+                import torch
+                torch.set_num_threads(1)
+            except ImportError:
+                pass
+            _embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name=settings.EMBEDDING_MODEL_NAME
+            )
     return _embedding_function
 
 

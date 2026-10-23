@@ -8,9 +8,8 @@ python-multipart>=0.0.9
 httpx>=0.27.0
 email-validator>=2.1.0
 
-# Vector Database & Local Embeddings (Free, runs offline)
+# Vector Database & Local Embeddings (Lightweight ONNX, runs offline under 40MB RAM)
 chromadb>=0.4.24
-sentence-transformers>=2.6.0
 
 # LLM Providers (Free tiers)
 google-generativeai>=0.4.1
