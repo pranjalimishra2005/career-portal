@@ -116,6 +116,16 @@ def is_real_job(job: JobPosting) -> bool:
 
 # --- API ENDPOINTS ---
 
+@app.get("/")
+def root():
+    return {
+        "service": "CareerPortal API Backend",
+        "status": "online",
+        "documentation": "/docs",
+        "health": "/api/health"
+    }
+
+
 @app.get("/api/health")
 def health_check():
     return {
